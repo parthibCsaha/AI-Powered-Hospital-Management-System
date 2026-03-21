@@ -1,0 +1,6 @@
+@HMS_Backend_HostAddress = http://localhost:5104
+
+GET {{HMS_Backend_HostAddress}}/
+Accept: application/json
+
+###

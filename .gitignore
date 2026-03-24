@@ -27,6 +27,8 @@ project.lock.json
 appsettings.Production.json
 appsettings.Secrets.json
 .env
+.env.*
+!.env.example
 *.pfx
 *.p12
 

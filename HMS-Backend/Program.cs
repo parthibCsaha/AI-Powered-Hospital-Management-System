@@ -66,7 +66,8 @@ try
     });
 
     app.UseSerilogRequestLogging();
-    app.UseHttpsRedirection();
+    if (app.Environment.IsDevelopment())
+        app.UseHttpsRedirection();
     app.UseCors("HmsPolicy");
     app.UseAuthentication();
     app.UseAuthorization();

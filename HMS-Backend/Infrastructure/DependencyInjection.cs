@@ -35,6 +35,12 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        // ── AI / Groq ─────────────────────────────────────────────────────────
+        services.AddHttpClient<IAiReportService, GroqAiReportService>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
+
         return services;
 
     }

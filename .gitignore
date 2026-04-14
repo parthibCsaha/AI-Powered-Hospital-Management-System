@@ -71,3 +71,10 @@ coveragereport/
 *.swp
 *~
 *.cache
+
+## Python
+__pycache__/
+*.pyc
+
+## Test Data
+test_patient.json

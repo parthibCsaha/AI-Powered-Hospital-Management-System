@@ -5,6 +5,7 @@ using HMS_Backend.Infrastructure;
 using HMS_Backend.Infrastructure.Persistence;
 using HMS_Backend.Infrastructure.Persistence.Seeding;
 using Serilog;
+using System.Text.Json.Serialization;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -34,6 +35,11 @@ try
 
     // API
     builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        })
         .ConfigureApiBehaviorOptions(o => o.SuppressModelStateInvalidFilter = true);
 
     builder.Services.AddEndpointsApiExplorer();

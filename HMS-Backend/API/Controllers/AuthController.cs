@@ -57,4 +57,18 @@ public class AuthController : BaseApiController
         return Ok(ApiResponse.Ok("Logged out successfully."));
     }
 
+    [HttpGet("me")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<Application.DTOs.Auth.UserProfileDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
+    {
+        var userId = _currentUserService.UserId;
+        if (userId is null)
+            return Unauthorized(ApiResponse.Fail("User not authenticated."));
+
+        var profile = await _authService.GetProfileAsync(userId.Value, cancellationToken);
+        return Ok(ApiResponse<Application.DTOs.Auth.UserProfileDto>.Ok(profile));
+    }
+
 }

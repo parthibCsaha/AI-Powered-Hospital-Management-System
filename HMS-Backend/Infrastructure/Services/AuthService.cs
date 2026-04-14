@@ -35,8 +35,9 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request, CancellationToken cancellationToken = default)
     {
+        var email = request.Email;
         var existingUser = await _unitOfWork.Users.FirstOrDefaultAsync(
-            u => u.Email == request.Email, cancellationToken
+            u => u.Email == email, cancellationToken
         );
 
         if (existingUser is not null)
@@ -90,6 +91,28 @@ public class AuthService : IAuthService
         user.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Users.Update(user);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<UserProfileDto> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _unitOfWork.Users.FirstOrDefaultAsync(
+            u => u.Id == userId && !u.IsDeleted, cancellationToken
+        ) ?? throw new KeyNotFoundException("User not found.");
+
+        return new UserProfileDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            FullName = $"{user.FirstName} {user.LastName}",
+            Role = user.Role.ToString(),
+            IsActive = user.IsActive,
+            LastLoginAt = user.LastLoginAt,
+            CreatedAt = user.CreatedAt,
+            DoctorId = user.DoctorId,
+            PatientId = user.PatientId
+        };
     }
 
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(User user, CancellationToken cancellationToken)

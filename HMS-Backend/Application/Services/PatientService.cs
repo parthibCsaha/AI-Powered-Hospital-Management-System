@@ -61,16 +61,45 @@ public class PatientService : IPatientService
 
     public async Task<PatientResponseDto> CreateAsync(CreatePatientDto dto, CancellationToken ct = default)
     {
-        var exists = await _uow.Patients.AnyAsync(p => p.Email == dto.Email.ToLower() && !p.IsDeleted, ct);
+        if (dto == null)
+            throw new ArgumentNullException(nameof(dto), "Patient data is required");
 
-        if (exists) throw new InvalidOperationException("A patient with the same email already exists.");
-
-        var patient = _mapper.Map<Patient>(dto);
+        var patient = new Patient
+        {
+            Id = Guid.NewGuid(),
+            FirstName = dto.FirstName ?? string.Empty,
+            LastName = dto.LastName ?? string.Empty,
+            DateOfBirth = dto.DateOfBirth,
+            Gender = dto.Gender,
+            BloodGroup = dto.BloodGroup,
+            Email = (dto.Email ?? string.Empty).ToLower(),
+            PhoneNumber = dto.PhoneNumber ?? string.Empty,
+            Address = dto.Address ?? string.Empty,
+            EmergencyContactName = dto.EmergencyContactName,
+            EmergencyContactPhone = dto.EmergencyContactPhone,
+            Allergies = dto.Allergies,
+            ChronicConditions = dto.ChronicConditions,
+            CreatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
 
         await _uow.Patients.AddAsync(patient, ct);
         await _uow.SaveChangesAsync(ct);
 
-        return _mapper.Map<PatientResponseDto>(patient);
+        return new PatientResponseDto 
+        { 
+            Id = patient.Id, 
+            Email = patient.Email, 
+            FirstName = patient.FirstName, 
+            LastName = patient.LastName,
+            FullName = patient.FullName,
+            Age = patient.Age,
+            DateOfBirth = patient.DateOfBirth,
+            Gender = patient.Gender.ToString(),
+            BloodGroup = patient.BloodGroup.ToString(),
+            PhoneNumber = patient.PhoneNumber,
+            Address = patient.Address
+        };
 
     }
 

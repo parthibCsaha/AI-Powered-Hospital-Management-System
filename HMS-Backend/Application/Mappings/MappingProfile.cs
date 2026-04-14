@@ -31,7 +31,11 @@ public class MappingProfile : Profile
             .ForMember(d => d.Gender, o => o.MapFrom(s => s.Gender.ToString()))
             .ForMember(d => d.BloodGroup, o => o.MapFrom(s => s.BloodGroup.ToString()));
 
-        CreateMap<CreatePatientDto, Patient>();
+        CreateMap<CreatePatientDto, Patient>()
+            .ForMember(d => d.Id, o => o.Ignore())
+            .ForMember(d => d.CreatedAt, o => o.Ignore())
+            .ForMember(d => d.UpdatedAt, o => o.Ignore())
+            .ForMember(d => d.IsDeleted, o => o.Ignore());
         CreateMap<UpdatePatientDto, Patient>();
 
         // Doctor

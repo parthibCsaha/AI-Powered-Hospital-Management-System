@@ -18,6 +18,7 @@ public class PatientsController : BaseApiController
        => _patientService = patientService;
 
     [HttpGet]
+    [Authorize(Roles = "Admin,Receptionist")]
     [ProducesResponseType(typeof(ApiResponse<PagedResult<PatientSummaryDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] PaginationParams pagination,
@@ -47,6 +48,15 @@ public class PatientsController : BaseApiController
         [FromBody] CreatePatientDto dto,
         CancellationToken cancellationToken)
     {
+        if (dto == null)
+            return BadRequest(ApiResponse.Fail("Patient data is required."));
+
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
+            return BadRequest(ApiResponse.Fail(string.Join("; ", errors)));
+        }
+
         var result = await _patientService.CreateAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result.Id },
             ApiResponse<PatientResponseDto>.Ok(result, "Patient created successfully."));

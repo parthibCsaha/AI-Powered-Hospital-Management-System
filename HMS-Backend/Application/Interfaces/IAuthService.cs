@@ -12,5 +12,6 @@ public interface IAuthService
     Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request, CancellationToken cancellationToken = default);
     Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request, CancellationToken cancellationToken = default);
     Task RevokeTokenAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<UserProfileDto> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
     
 }

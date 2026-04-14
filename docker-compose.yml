@@ -28,6 +28,7 @@ services:
       ConnectionStrings__DefaultConnection: >-
         Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       JwtSettings__SecretKey: ${JWT_SECRET_KEY}
+      Groq__ApiKey: ${GROQ_API_KEY}
 
 volumes:
   pgdata:

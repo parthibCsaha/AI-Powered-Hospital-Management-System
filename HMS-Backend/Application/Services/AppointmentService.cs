@@ -6,6 +6,8 @@ using HMS_Backend.Application.Common;
 using HMS_Backend.Domain.Entities;
 using HMS_Backend.Domain.Enums;
 using HMS_Backend.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace HMS_Backend.Application.Services;
 
@@ -92,8 +94,15 @@ public class AppointmentService : IAppointmentService
         appointment.EndTime = endTime;
         appointment.Fee = doctor.ConsultationFee;
 
-        await _uow.Appointments.AddAsync(appointment, ct);
-        await _uow.SaveChangesAsync(ct);
+        try
+        {
+            await _uow.Appointments.AddAsync(appointment, ct);
+            await _uow.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == PostgresErrorCodes.ExclusionViolation)
+        {
+            throw new InvalidOperationException("The selected slot was just booked by someone else. Please choose another time.");
+        }
 
         var created = await _uow.Appointments.FirstOrDefaultAsync(a => a.Id == appointment.Id, ct);
         return _mapper.Map<AppointmentResponseDto>(created!);
@@ -107,11 +116,32 @@ public class AppointmentService : IAppointmentService
  
         if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
             throw new InvalidOperationException("Cannot update a completed or cancelled appointment.");
+
+        var newEndTime = dto.StartTime.Add(TimeSpan.FromMinutes(30));
+        var conflict = await _uow.Appointments.AnyAsync(a =>
+            a.Id != id &&
+            a.DoctorId == appointment.DoctorId &&
+            a.AppointmentDate.Date == dto.AppointmentDate.Date &&
+            a.Status != AppointmentStatus.Cancelled &&
+            !a.IsDeleted &&
+            a.StartTime < newEndTime && a.EndTime > dto.StartTime, ct);
+
+        if (conflict)
+            throw new InvalidOperationException("The doctor has another appointment during the requested time slot.");
  
         _mapper.Map(dto, appointment);
+        appointment.EndTime = newEndTime;
         appointment.UpdatedAt = DateTime.UtcNow;
         _uow.Appointments.Update(appointment);
-        await _uow.SaveChangesAsync(ct);
+
+        try
+        {
+            await _uow.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == PostgresErrorCodes.ExclusionViolation)
+        {
+            throw new InvalidOperationException("The selected slot was just booked by someone else. Please choose another time.");
+        }
  
         return _mapper.Map<AppointmentResponseDto>(appointment);
     }

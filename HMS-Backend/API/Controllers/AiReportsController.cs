@@ -15,17 +15,11 @@ public class AiReportsController : ControllerBase
     private readonly IAiReportService _aiService;
     public AiReportsController(IAiReportService aiService) => _aiService = aiService;
 
-    /// <summary>
-    /// Lists all supported languages for AI report summarization.
-    /// </summary>
     [HttpGet("languages")]
     [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<SupportedLanguageDto>>), StatusCodes.Status200OK)]
     public IActionResult GetLanguages()
         => Ok(ApiResponse<IReadOnlyList<SupportedLanguageDto>>.Ok(_aiService.GetSupportedLanguages()));
 
-    /// <summary>
-    /// Summarizes a single medical record in the chosen language using AI.
-    /// </summary>
     [HttpPost("summarize/record/{recordId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<ReportSummaryResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -38,9 +32,6 @@ public class AiReportsController : ControllerBase
         return Ok(ApiResponse<ReportSummaryResponseDto>.Ok(result, "Report summarized successfully."));
     }
 
-    /// <summary>
-    /// Summarizes all medical records for a patient in the chosen language using AI.
-    /// </summary>
     [HttpPost("summarize/patient/{patientId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<ReportSummaryResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
